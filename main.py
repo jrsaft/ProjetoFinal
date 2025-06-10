@@ -32,7 +32,10 @@ class SoftwareCRM:
 
         self.mostrar_tela(self.tela_principal)
 
-        self.configurar_tela_principal(self.tela_principal)
+        self.configurar_tela_principal()
+        self.configurar_tela_perguntas_info()
+        self.configurar_tela_infos()
+        self.configurar_tela_cadastro_cliente()
 
     
     def mostrar_tela(self, tela):
@@ -42,11 +45,11 @@ class SoftwareCRM:
         frame = tk.Frame(self.tela_principal, padx=20, pady=20)#Criação do frame
         frame.place(relx=0.5, rely=0.5, anchor="center")
 
-        titulo = tk.Label(frame, text="Plataforma Inteligente de atendimento ao cliente", font=(Arial, 16, "bold") )
+        titulo = tk.Label(frame, text="Plataforma Inteligente de atendimento ao cliente", font=("Arial", 16, "bold") )
         titulo.pack(pady=(0,30)) #(cima,baixo)
 
         btn_info_cliente = tk.Button(frame, text="Clientes", width=25, height=2,
-                                         command=lambda: self.mostrar_tela(self.tela_infos)) #command=lambda: troca a tela atual para a tela de cadastro.
+                                         command=lambda: self.mostrar_tela(self.tela_perguntas_info)) #command=lambda: troca a tela atual para a tela de cadastro.
         btn_info_cliente.pack(pady=10)
 
         btn_atendimentos = tk.Button(frame, text="Atendimento", width=25, height=2,
@@ -66,34 +69,41 @@ class SoftwareCRM:
         btn_sair.pack(pady=10)
 
     def configurar_tela_perguntas_info(self): # tela para perguntar se ele deseja cadastrar ou consultar um cliente.
-        frame_perguntas_info = tk.Frame(self.configurar_tela_perguntas_info, padx=30)
-        frame_perguntas_info.pack(fill="both",expand=True, pady=10)
-
-        titulo_perguntas_info = tk.Label(self.tela_perguntas_info, text="Qual ação você \n deseja realizar?", font=(Arial, 30, "bold"))
+        titulo_perguntas_info = tk.Label(self.tela_perguntas_info, text="Qual ação você \n deseja realizar?", font=("Arial", 30, "bold"))
         titulo_perguntas_info.pack(pady=35)
 
-        btn_perguntas_cadastrar = tk.Button(frame, text="Cadastrar cliente", width=30, height=4,
-                                         command=lambda: self.mostrar_tela(self.tela_infos)) #command=lambda: troca a tela atual para a tela de cadastro.
+        frame_perguntas_info = tk.Frame(self.tela_perguntas_info, padx=30)
+        frame_perguntas_info.pack(fill="both",expand=True, pady=10)
+
+        btn_perguntas_cadastrar = tk.Button(frame_perguntas_info, text="Cadastrar cliente", width=30, height=4,
+                                         command=lambda: self.mostrar_tela(self.tela_cadastro_cliente)) #command=lambda: troca a tela atual para a tela de cadastro.
         btn_perguntas_cadastrar.pack(pady=10)
 
-        btn_perguntas_consultar = tk.Button(frame, text="Consultar informações \n do cliente", width=30, height=4
-                                            command=lambda: self.mostrar_tela(self.tela_info))
+        btn_perguntas_consultar = tk.Button(frame_perguntas_info, text="Consultar informações \n do cliente", width=30, height=4,
+                                            command=lambda: self.mostrar_tela(self.tela_infos))
         btn_perguntas_consultar.pack(pady=10)
 
+    # def validar_rastreio(rastreio):
+    #     padrao = r'^[A-Za-z]{2}\d{9}[A-Za-z]{2}$'
+    #     if re.match(padrao, rastreio):
+    #         return True
+    #     else:
+    #         return False
 
-####### CRIAR TELA DE CADASTRO DE CLIENTES E ASSOCIAR AO BOTÃO DE CADASTRO.
+
+###### CRIAR TELA DE CADASTRO DE CLIENTES E ASSOCIAR AO BOTÃO DE CADASTRO.
     def configurar_tela_cadastro_cliente(self):
-        frame_cadastro_cliente = tk.Frame(self.tela_cadastro_cliente, padx=30)
-        frame_cadastro_cliente.pack(pady=35)
-
         titulo = tk.Label(self.tela_cadastro_cliente, text="CADASTRO DE CLIENTES", font=("Arial", 22, "bold"))
         titulo.pack(pady=20)
 
         tdois = tk.Label(self.tela_cadastro_cliente, text="Dados de Identificação do Cliente", font=("Arial",18, "bold"))
-        tdois.pack(pady=15)
+        tdois.pack(pady=8)
+
+        frame_cadastro_cliente = tk.Frame(self.tela_cadastro_cliente, padx=10)
+        frame_cadastro_cliente.pack(pady=10)
 
         tk.Label(frame_cadastro_cliente,text="Nome:").grid(row=0, column=0, sticky="e", pady=5)
-        self.cliente_nome_entry = tk.Entry(frame_cadastro_cliente, width=30)
+        self.cliente_nome_entry = tk.Entry(frame_cadastro_cliente, width=5)
         self.cliente_nome_entry.grid(row=0, column=1, sticky="w", pady=5)
 
         tk.Label(frame_cadastro_cliente, text="CPF:").grid(row=1, column=0, sticky="e", pady=5)
@@ -111,12 +121,12 @@ class SoftwareCRM:
         # Seção: Informações pessoais do cliente
 
         ttres = tk.Label(self.tela_cadastro_cliente, text="Informações de Contato", font=("Arial",18, "bold"))
-        ttres.pack(pady=15)
+        ttres.pack(pady=8)
 
         frame_contato_cliente = tk.Frame(self.tela_cadastro_cliente, padx=30)
-        frame_contato_cliente.pack(pady=10)
+        frame_contato_cliente.pack(pady=18)
 
-        tk.Label(frame_contato_cliente, text="Telefone:").grid(row=0, column=0, sticky="e", pady=5)
+        tk.Label(frame_contato_cliente, text="Telefone:").grid(row=0, column=0, sticky="e", pady=2)
         self.cliente_telefone_entry = tk.Entry(frame_contato_cliente, width=20)
         self.cliente_telefone_entry.grid(row=0, column=1, sticky="w", pady=5)
 
@@ -134,20 +144,20 @@ class SoftwareCRM:
 
         # Seção: Preferências e histórico do cliente
         tquatro = tk.Label(self.tela_cadastro_cliente, text="Histórico", font=("Arial", 18, "bold"))
-        tquatro.pack(pady=15)
+        tquatro.pack(pady=8)
 
         frame_extra_cliente = tk.Frame(self.tela_cadastro_cliente, padx=30)
         frame_extra_cliente.pack(pady=10)
 
-        # Histórico de rastreamento (entrada múltipla, separada por vírgula)
-        tk.Label(frame_extra_cliente, text="Histórico de Rastreamento:").grid(row=0, column=0, sticky="e", pady=5)
-        self.cliente_rastreamento_entry = tk.Entry(frame_extra_cliente, width=40)
-        ####### COLOCAR O PADRÃO DE RASTREAMENTO
-        self.cliente_rastreamento_entry.grid(row=0, column=1, sticky="w", pady=5)
+        # # Histórico de rastreamento (entrada múltipla, separada por vírgula)
+        # tk.Label(frame_extra_cliente, text="Histórico de Rastreamento:").grid(row=0, column=0, sticky="e", pady=5)
+        # self.cliente_rastreamento_entry = tk.Entry(frame_extra_cliente, width=40)
+        # validar_rastreio(cliente_)
+        # self.cliente_rastreamento_entry.grid(row=0, column=1, sticky="w", pady=5)
 
         # Preferências de comunicação (checkboxes)
         tk.Label(frame_extra_cliente, text="Preferências de Comunicação:").grid(row=1, column=0, sticky="ne", pady=5)
-
+ 
         self.pref_whatsapp = tk.BooleanVar() #Váriaveis do tipo booleana
         self.pref_email = tk.BooleanVar()
 
@@ -157,52 +167,72 @@ class SoftwareCRM:
         tk.Checkbutton(check_frame, text="WhatsApp", variable=self.pref_whatsapp).pack(anchor="w")
         tk.Checkbutton(check_frame, text="E-mail", variable=self.pref_email).pack(anchor="w")
 
-        # Avaliações anteriores (apenas exibição por enquanto)
-        tk.Label(frame_extra_cliente, text="Avaliações Anteriores:").grid(row=2, column=0, sticky="ne", pady=5)
-        ##### CONTINUIDADE COM O SOR
+    #     # Avaliações anteriores (apenas exibição por enquanto)
+    #     tk.Label(frame_extra_cliente, text="Avaliações Anteriores:").grid(row=2, column=0, sticky="ne", pady=5)
+    #     ##### CONTINUIDADE COM O SOR
 
-        # Tipo de serviços utilizados
-        ###### CADASTRAR UM CAMPO PARA ARMAZENAR OS TIPOS DE ENVIO ESCOLHIDOS PELO CLIENTE (Sedex, PAC, Logística Reversa, etc.)
+    #     # Tipo de serviços utilizados
+    #     ###### CADASTRAR UM CAMPO PARA ARMAZENAR OS TIPOS DE ENVIO ESCOLHIDOS PELO CLIENTE (Sedex, PAC, Logística Reversa, etc.)
 
-        # Histórico de envios e recebimentos
-        ##### ARMAZENAR AS VEZES QUE O CLIENTE ENVIOU OU RECEBEU ALGO, JUNTO COM O ENDEREÇO
+    #     # Histórico de envios e recebimentos
+    #     ##### ARMAZENAR AS VEZES QUE O CLIENTE ENVIOU OU RECEBEU ALGO, JUNTO COM O ENDEREÇO
 
-        # Ocorrências (extravio, atraso, devolução, etc.)
-        #### ARMAZENAR DADOS DE ALGUM PROBLEMA QUE O CLIENTE TENHA PASSADO.
+    #     # Ocorrências (extravio, atraso, devolução, etc.)
+    #     #### ARMAZENAR DADOS DE ALGUM PROBLEMA QUE O CLIENTE TENHA PASSADO.
 
-        # Autenticado (checkbox)
-        self.cliente_autenticado_var = tk.BooleanVar(value=True)
-        self.auth_checkbox = tk.Checkbutton(frame_extra_cliente, text="Cliente Autenticado", variable=self.cliente_autenticado_var)
-        self.auth_checkbox.grid(row=4, columnspan=2, sticky="w", pady=5)
+    #     # Autenticado (checkbox)
+    #     self.cliente_autenticado_var = tk.BooleanVar(value=True)
+    #     self.auth_checkbox = tk.Checkbutton(frame_extra_cliente, text="Cliente Autenticado", variable=self.cliente_autenticado_var)
+    #     self.auth_checkbox.grid(row=4, columnspan=2, sticky="w", pady=5)
 
-        # Chamados anteriores / tickets de suporte
-        tk.Label(frame_extra_cliente, text="Protocolos anteriores:").grid(row=5, column=0, sticky="e", pady=5)
-        #### vincular os próximos chamados para esse banco de dados, apenas informando o código.
+    #     # Chamados anteriores / tickets de suporte
+    #     tk.Label(frame_extra_cliente, text="Protocolos anteriores:").grid(row=5, column=0, sticky="e", pady=5)
+    #     #### vincular os próximos chamados para esse banco de dados, apenas informando o código.
 
-        # Botão de salvar informações
-        btn_salvar = tk.Button(self.tela_cadastro_cliente, text="Salvar Cadastro", command=self.salvar_cliente)
-        btn_salvar.pack(pady=20)
+        # # Botão de salvar informações
+        # btn_salvar = tk.Button(self.tela_cadastro_cliente, text="Salvar Cadastro", command=self.salvar_cliente)
+        # btn_salvar.pack(pady=20)
 
 
     def configurar_tela_infos(self):
-        frame_infos = tk.Frame(self.tela_infos, padx=20)
+        infos_titulo = tk.Label(self.tela_infos, text="Informações dos clientes", font=("Arial", 20, "bold"))
+        infos_titulo.pack(pady=10)
+
+        tk.Label(self.tela_infos, text="Nome do cliente:").pack(ipady=5)
+        self.cliente_entry = tk.Entry(self.tela_infos, width=15)
+        self.cliente_entry.pack(ipady=5)
+
+        botoes_frame = tk.Frame(self.tela_infos)
+        botoes_frame.pack(pady=15)
+
+        tk.Button(botoes_frame, text="Pesquisar", width=12, command=self.pesquisar_cliente).pack(side="left", padx=20)
+
+        frame_infos = tk.Frame(self.tela_infos, padx=30)
         frame_infos.pack(fill="both", expand=True, pady=10)
 
-        infos_titulo = tk.Label(self.tela_infos, text="Informações dos clientes", font=(Arial, 20, "bold"))
-        infos_titulo.pack(pady=20)
-
-        scrollbar = tk.Scrollbar(infos_titulo) #Cria a barra de rolagem;
-        scrollbar.pack(side="right", fill="y") #fill="y": faz com que a scrollbar preencha toda a altura vertical do lista_frame.
-
-        self.listbox_clientes = tk.Listbox(frame_infos, width=90, height=10, font=("Arial", 10)) #Cria um widget Listbox, que é uma caixa de seleção/lista para mostrar múltiplos itens, dentro do frame_infos.
+        self.listbox_clientes = tk.Listbox(frame_infos, width=40, height=5, font=("Arial", 10)) #Cria um widget Listbox, que é uma caixa de seleção/lista para mostrar múltiplos itens, dentro do frame_infos.
         self.listbox_clientes.pack(side="left", fill="both", expand=True)
 
-        self.listbox_clientes.config(yscrollcommand=scrollbar.set) #conexão entre a barra de rolagem e a lista;
-        scrollbar.config(command=self.listbox_clientes.yview) #O método self.listbox_proprietarios.yview é chamado para mostrar a parte correta da lista correspondente à posição da scrollbar.
-
-        tk.Button(botoes_frame, text="Ver Detalhes", width=12,
-                  command=self.ver_detalhes_proprietario).pack(side="left", padx=5)
-
         tk.Button(botoes_frame, text="Voltar", width=12,
-                  command=lambda: self.mostrar_tela(self.tela_principal)).pack(side="left", padx=5)
+                  command=lambda: self.mostrar_tela(self.tela_principal)).pack(side="bottom", padx=20, pady=20)
+        
+    def pesquisar_cliente(self):
+        nome_digitado = self.cliente_entry.get().strip().lower()
+        self.listbox_clientes.selection_clear(0, tk.END)  # Limpa seleções anteriores
 
+        for idx in range(self.listbox_clientes.size()):
+            item = self.listbox_clientes.get(idx).lower()
+            if nome_digitado in item:
+                self.listbox_clientes.selection_set(idx)
+                self.listbox_clientes.see(idx)  # Garante que o item selecionado fique visível
+                return
+
+        messagebox.showinfo("Resultado da busca", "Cliente não encontrado.")
+
+
+
+# Iniciar a aplicação
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = SoftwareCRM(root)
+    root.mainloop()
