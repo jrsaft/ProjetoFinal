@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import re
 from datetime import datetime
+import random
+import string
 
 class SoftwareCRM:
     def __init__(self, root): # root é o objeto da classe
@@ -22,12 +24,13 @@ class SoftwareCRM:
         self.tela_cadastro_cliente = tk.Frame(self.container)
         self.tela_infos = tk.Frame(self.container)
         self.tela_atendimento = tk.Frame(self.container)
+        self.tela_envio = tk.Frame(self.container)
         self.tela_logistica = tk.Frame(self.container)
         self.tela_financeiro = tk.Frame(self.container)
          
 
         for tela in (self.tela_principal,self.tela_perguntas_info, self.tela_cadastro_cliente, self.tela_infos, self.tela_atendimento,
-                     self.tela_logistica, self.tela_financeiro): #empilhar várias "telas" umas sobre as outras no mesmo lugar. Uma delas será visivel por vez.
+                     self.tela_envio, self.tela_logistica, self.tela_financeiro): #empilhar várias "telas" umas sobre as outras no mesmo lugar. Uma delas será visivel por vez.
             tela.grid(row=0, column=0, sticky="nsew")
 
         self.mostrar_tela(self.tela_principal)
@@ -36,7 +39,9 @@ class SoftwareCRM:
         self.configurar_tela_perguntas_info()
         self.configurar_tela_infos()
         self.configurar_tela_cadastro_cliente()
-
+        self.configurar_tela_atendimento()
+        self.configurar_tela_envio()
+        self.gerar_codigo_rastreio()
     
     def mostrar_tela(self, tela):
         tela.tkraise()
@@ -180,11 +185,6 @@ class SoftwareCRM:
     #     # Ocorrências (extravio, atraso, devolução, etc.)
     #     #### ARMAZENAR DADOS DE ALGUM PROBLEMA QUE O CLIENTE TENHA PASSADO.
 
-    #     # Autenticado (checkbox)
-    #     self.cliente_autenticado_var = tk.BooleanVar(value=True)
-    #     self.auth_checkbox = tk.Checkbutton(frame_extra_cliente, text="Cliente Autenticado", variable=self.cliente_autenticado_var)
-    #     self.auth_checkbox.grid(row=4, columnspan=2, sticky="w", pady=5)
-
     #     # Chamados anteriores / tickets de suporte
     #     tk.Label(frame_extra_cliente, text="Protocolos anteriores:").grid(row=5, column=0, sticky="e", pady=5)
     #     #### vincular os próximos chamados para esse banco de dados, apenas informando o código.
@@ -229,6 +229,76 @@ class SoftwareCRM:
 
         messagebox.showinfo("Resultado da busca", "Cliente não encontrado.")
 
+    def configurar_tela_atendimento(self):
+        titulo_perguntas_info = tk.Label(self.tela_atendimento, text="Qual ação você \n deseja realizar?", font=("Arial", 30, "bold"))
+        titulo_perguntas_info.pack(pady=35)
+
+        frame_atendimento = tk.Frame(self.tela_atendimento, padx=30)
+        frame_atendimento.pack(fill="both",expand=True, pady=10)
+
+        btn_envio = tk.Button(frame_atendimento, text="Envio", width=30, height=4,
+                                         command=lambda: self.mostrar_tela(self.tela_envio)) #command=lambda: troca a tela atual para a tela de cadastro.
+        btn_envio.pack(pady=10)
+
+        # btn_perguntas_consultar = tk.Button(frame_atendimento, text="Consultar informações \n do cliente", width=30, height=4,
+        #                                     command=lambda: self.mostrar_tela(self.tela_infos))
+        # btn_perguntas_consultar.pack(pady=10)
+
+    def gerar_codigo_rastreio(self):
+        letras = string.ascii_uppercase
+        prefixo = ''.join(random.choices(letras, k=2))
+        numeros = ''.join(random.choices(string.digits, k=9))
+        sufixo = ''.join(random.choices(letras, k=2))
+        rastreio = prefixo + numeros + sufixo
+        self.rastreio_entry.delete(0, tk.END)
+        self.rastreio_entry.insert(0, rastreio)
+
+    def configurar_tela_envio(self):
+        envio_titulo = tk.Label(self.tela_envio, text="Realização de envios.", font=("Arial", 20, "bold"))
+        envio_titulo.pack(pady=10)
+
+        frame_envio = tk.Frame(self.tela_envio, padx=30)
+        frame_envio.pack(pady=18)
+
+        tk.Label(frame_envio,text="Nome do remetente:").grid(row=0, column=0, sticky="e", pady=5)
+        self.cliente_nome_entry = tk.Entry(frame_envio, width=15)
+        self.cliente_nome_entry.grid(row=0, column=1, sticky="w", pady=5)
+
+        tk.Label(frame_envio, text="CPF do remetente:").grid(row=1, column=0, sticky="e", pady=5)
+        self.cliente_cpf_entry = tk.Entry(frame_envio, width=15)
+        self.cliente_cpf_entry.grid(row=1, column=1, sticky="w", pady=5)
+
+        tk.Label(frame_envio, text="Logradouro:").grid(row=2, column=0, sticky="e", pady=5)
+        self.cliente_endereco_entry = tk.Entry(frame_envio, width=15)
+        self.cliente_endereco_entry.grid(row=2, column=1, sticky="w", pady=5)
+
+        tk.Label(frame_envio, text="Bairro:").grid(row=3, column=0, sticky="e", pady=5)
+        self.cliente_bairro_entry = tk.Entry(frame_envio, width=15)
+        self.cliente_bairro_entry.grid(row=3, column=1, sticky="w", pady=5)
+
+        tk.Label(frame_envio, text="CEP:").grid(row=4, column=0, sticky="e", pady=5)
+        self.cliente_cep_entry = tk.Entry(frame_envio, width=15)
+        self.cliente_cep_entry.grid(row=4, column=0, sticky="w", pady=5)
+    
+        tk.Label(frame_envio, text="Rastreio:").grid(row=5, column=0, sticky="e", pady=5)
+        self.rastreio_entry = tk.Entry(frame_envio, width=20)
+        self.rastreio_entry.grid(row=5, column=1, pady=5)
+        btn_rastreio = tk.Button(frame_envio, text="Gerar rastreio", width=10, height=1,
+                                         command=lambda: self.gerar_codigo_rastreio())
+        btn_rastreio.grid(row=6, column=0, columnspan=2, pady=10)
+
+        # tk.Label(frame_envio, text="Tipo de serviço escolhido:").grid(row=7, column=0, sticky="ne", pady=5)
+ 
+        # self.pref_Sedex = tk.BooleanVar() #Váriaveis do tipo booleana
+        # self.pref_PAC = tk.BooleanVar()
+        # self.pref_carta = tk.BooleanVar()
+
+        # check_frame = tk.Frame(frame_envio) #Criação de um frame para o checkbutton
+        # check_frame.grid(row=7, column=1, sticky="w")
+
+        # tk.RADIOBUTTON(root, text="Sedex", variable=self.pref_Sedex).pack(anchor="s")
+        # tk.RADIOBUTTON(root, text="PAC", variable=self.pref_PAC).pack(anchor="s")
+        # tk.RADIOBUTTON(root, text="Carta", variable=self.pref_carta).pack(anchor="s")
 
 
 # Iniciar a aplicação
