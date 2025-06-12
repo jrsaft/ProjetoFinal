@@ -4,6 +4,7 @@ import re
 from datetime import datetime
 import random
 import string
+from models.bancodedados import DBService
 
 class SoftwareCRM:
     def __init__(self, root): # root é o objeto da classe
@@ -87,6 +88,10 @@ class SoftwareCRM:
         btn_perguntas_consultar = tk.Button(frame_perguntas_info, text="Consultar informações \n do cliente", width=30, height=4,
                                             command=lambda: self.mostrar_tela(self.tela_infos))
         btn_perguntas_consultar.pack(pady=10)
+
+        btn_voltar = tk.Button(frame_perguntas_info, text="Voltar", width=30, height=4,
+                                command=lambda: self.mostrar_tela(self.tela_principal))
+        btn_voltar.pack(pady=10)
 
     # def validar_rastreio(rastreio):
     #     padrao = r'^[A-Za-z]{2}\d{9}[A-Za-z]{2}$'
@@ -172,6 +177,21 @@ class SoftwareCRM:
         tk.Checkbutton(check_frame, text="WhatsApp", variable=self.pref_whatsapp).pack(anchor="w")
         tk.Checkbutton(check_frame, text="E-mail", variable=self.pref_email).pack(anchor="w")
 
+        banco = DBService()
+        if self.pref_email:
+            comunicacao = "E-mail"
+        if self.pref_whatsapp:
+            comunicacao = "Whatsapp"
+
+        btn_salvar = tk.Button(frame_extra_cliente, text="Salvar", width=12, height=1,
+                  command=lambda: banco.criar_usuario(self.cliente_nome_entry, self.cliente_data_entry, self.cliente_cpf_entry,
+                   self.cliente_genero_entry, self.cliente_telefone_entry, self.cliente_email_entry, 
+                   self.cliente_endereco_entry, self.cliente_cep_entry, comunicacao )).grid(row=4, column=1, pady=5)
+        
+        btn_voltar = tk.Button(frame_extra_cliente, text="Voltar", width=12, height=1,
+                  command=lambda: self.mostrar_tela(self.tela_perguntas_info)).grid(row=4, column=0, pady=5)
+
+
     #     # Avaliações anteriores (apenas exibição por enquanto)
     #     tk.Label(frame_extra_cliente, text="Avaliações Anteriores:").grid(row=2, column=0, sticky="ne", pady=5)
     #     ##### CONTINUIDADE COM O SOR
@@ -240,6 +260,11 @@ class SoftwareCRM:
                                          command=lambda: self.mostrar_tela(self.tela_envio)) #command=lambda: troca a tela atual para a tela de cadastro.
         btn_envio.pack(pady=10)
 
+
+        btn_voltar = tk.Button(frame_atendimento, text="Voltar", width=30, height=4,
+                  command=lambda: self.mostrar_tela(self.tela_principal))
+        btn_voltar.pack(pady=10)
+
         # btn_perguntas_consultar = tk.Button(frame_atendimento, text="Consultar informações \n do cliente", width=30, height=4,
         #                                     command=lambda: self.mostrar_tela(self.tela_infos))
         # btn_perguntas_consultar.pack(pady=10)
@@ -258,7 +283,7 @@ class SoftwareCRM:
         envio_titulo.pack(pady=10)
 
         frame_envio = tk.Frame(self.tela_envio, padx=30)
-        frame_envio.pack(pady=18)
+        frame_envio.pack(pady=22)
 
         tk.Label(frame_envio,text="Nome do remetente:").grid(row=0, column=0, sticky="e", pady=5)
         self.cliente_nome_entry = tk.Entry(frame_envio, width=15)
@@ -268,17 +293,17 @@ class SoftwareCRM:
         self.cliente_cpf_entry = tk.Entry(frame_envio, width=15)
         self.cliente_cpf_entry.grid(row=1, column=1, sticky="w", pady=5)
 
-        tk.Label(frame_envio, text="Logradouro:").grid(row=2, column=0, sticky="e", pady=5)
+        tk.Label(frame_envio, text="Logradouro do envio:").grid(row=2, column=0, sticky="e", pady=5)
         self.cliente_endereco_entry = tk.Entry(frame_envio, width=15)
         self.cliente_endereco_entry.grid(row=2, column=1, sticky="w", pady=5)
 
-        tk.Label(frame_envio, text="Bairro:").grid(row=3, column=0, sticky="e", pady=5)
+        tk.Label(frame_envio, text="Bairro do envio:").grid(row=3, column=0, sticky="e", pady=5)
         self.cliente_bairro_entry = tk.Entry(frame_envio, width=15)
         self.cliente_bairro_entry.grid(row=3, column=1, sticky="w", pady=5)
 
-        tk.Label(frame_envio, text="CEP:").grid(row=4, column=0, sticky="e", pady=5)
+        tk.Label(frame_envio, text="CEP do envio:").grid(row=4, column=0, sticky="e", pady=5)
         self.cliente_cep_entry = tk.Entry(frame_envio, width=15)
-        self.cliente_cep_entry.grid(row=4, column=0, sticky="w", pady=5)
+        self.cliente_cep_entry.grid(row=4, column=1, sticky="w", pady=5)
     
         tk.Label(frame_envio, text="Rastreio:").grid(row=5, column=0, sticky="e", pady=5)
         self.rastreio_entry = tk.Entry(frame_envio, width=20)
@@ -287,19 +312,33 @@ class SoftwareCRM:
                                          command=lambda: self.gerar_codigo_rastreio())
         btn_rastreio.grid(row=6, column=0, columnspan=2, pady=10)
 
-        # tk.Label(frame_envio, text="Tipo de serviço escolhido:").grid(row=7, column=0, sticky="ne", pady=5)
- 
-        # self.pref_Sedex = tk.BooleanVar() #Váriaveis do tipo booleana
-        # self.pref_PAC = tk.BooleanVar()
-        # self.pref_carta = tk.BooleanVar()
+        tk.Label(frame_envio, text="Tipo de serviço escolhido:").grid(row=7, column=0, sticky="ne", pady=5)
 
-        # check_frame = tk.Frame(frame_envio) #Criação de um frame para o checkbutton
-        # check_frame.grid(row=7, column=1, sticky="w")
+        self.tipo_servico = tk.StringVar()  # Variável comum para todos os Radiobuttons
 
-        # tk.RADIOBUTTON(root, text="Sedex", variable=self.pref_Sedex).pack(anchor="s")
-        # tk.RADIOBUTTON(root, text="PAC", variable=self.pref_PAC).pack(anchor="s")
-        # tk.RADIOBUTTON(root, text="Carta", variable=self.pref_carta).pack(anchor="s")
+        check_frame = tk.Frame(frame_envio)
+        check_frame.grid(row=7, column=1, sticky="w")
 
+        tk.Radiobutton(check_frame, text="Sedex", variable=self.tipo_servico, value="Sedex").grid(row=0, column=0, sticky="w")
+        tk.Radiobutton(check_frame, text="PAC", variable=self.tipo_servico, value="PAC").grid(row=0, column=1, sticky="w")
+        tk.Radiobutton(check_frame, text="Carta", variable=self.tipo_servico, value="Carta").grid(row=0, column=2, sticky="w")
+
+        frame_destinatario = tk.Frame(self.tela_envio, padx=30)
+        frame_destinatario.pack(pady=18)
+
+        tk.Label(frame_destinatario, text="Nome do destinatário:").grid(row=0, column=0, sticky="e", pady=5)
+        self.destinatario_entry = tk.Entry(frame_destinatario, width=15)
+        self.destinatario_entry.grid(row=0, column=1, sticky="w", pady=5)
+
+        tk.Label(frame_destinatario, text="CPF:").grid(row=1, column=0, sticky="e", pady=5)
+        self.destinatario_cpf_entry = tk.Entry(frame_destinatario, width=15)
+        self.destinatario_cpf_entry.grid(row=1, column=1, sticky="w", pady=5)
+
+        botoes_frame = tk.Frame(self.tela_envio)
+        botoes_frame.pack(pady=15)
+
+        tk.Button(botoes_frame, text="Voltar", width=12,
+                  command=lambda: self.mostrar_tela(self.tela_atendimento)).pack(side="bottom", padx=20, pady=20)
 
 # Iniciar a aplicação
 if __name__ == "__main__":
