@@ -27,12 +27,13 @@ class SoftwareCRM:
         self.tela_infos = tk.Frame(self.container)
         self.tela_atendimento = tk.Frame(self.container)
         self.tela_envio = tk.Frame(self.container)
+        self.tela_reversa = tk.Frame(self.container)
         self.tela_logistica = tk.Frame(self.container)
         self.tela_financeiro = tk.Frame(self.container)
          
 
         for tela in (self.tela_principal,self.tela_perguntas_info, self.tela_cadastro_cliente, self.tela_infos, self.tela_atendimento,
-                     self.tela_envio, self.tela_logistica, self.tela_financeiro): #empilhar várias "telas" umas sobre as outras no mesmo lugar. Uma delas será visivel por vez.
+                     self.tela_envio, self.tela_reversa, self.tela_logistica, self.tela_financeiro): #empilhar várias "telas" umas sobre as outras no mesmo lugar. Uma delas será visivel por vez.
             tela.grid(row=0, column=0, sticky="nsew")
 
         self.mostrar_tela(self.tela_principal)
@@ -45,6 +46,7 @@ class SoftwareCRM:
         self.configurar_tela_envio()
         self.gerar_codigo_rastreio()
         self.salvar_cliente()
+        self.configurar_tela_reversa()
     
     def mostrar_tela(self, tela):
         tela.tkraise()
@@ -278,6 +280,8 @@ class SoftwareCRM:
         messagebox.showinfo("Resultado da busca", "Cliente não encontrado.")
 
     def configurar_tela_atendimento(self):
+    # Tela que mostra os três botões para Envio, Logistica Reversa e Voltar.
+
         titulo_perguntas_info = tk.Label(self.tela_atendimento, text="Qual ação você \n deseja realizar?", font=("Arial", 30, "bold"))
         titulo_perguntas_info.pack(pady=35)
 
@@ -288,16 +292,16 @@ class SoftwareCRM:
                                          command=lambda: self.mostrar_tela(self.tela_envio)) #command=lambda: troca a tela atual para a tela de cadastro.
         btn_envio.pack(pady=10)
 
+        btn_envio = tk.Button(frame_atendimento, text="Logistica reversa", width=30, height=4,
+                                         command=lambda: self.mostrar_tela(self.tela_reversa)) #command=lambda: troca a tela atual para a tela de cadastro.
+        btn_envio.pack(pady=10)
 
         btn_voltar = tk.Button(frame_atendimento, text="Voltar", width=30, height=4,
                   command=lambda: self.mostrar_tela(self.tela_principal))
         btn_voltar.pack(pady=10)
 
-        # btn_perguntas_consultar = tk.Button(frame_atendimento, text="Consultar informações \n do cliente", width=30, height=4,
-        #                                     command=lambda: self.mostrar_tela(self.tela_infos))
-        # btn_perguntas_consultar.pack(pady=10)
-
     def gerar_codigo_rastreio(self):
+        # Método para gerar um código de rastreio aleatório a cada clique no botão.
         letras = string.ascii_uppercase
         prefixo = ''.join(random.choices(letras, k=2))
         numeros = ''.join(random.choices(string.digits, k=9))
@@ -306,38 +310,66 @@ class SoftwareCRM:
         self.rastreio_entry.delete(0, tk.END)
         self.rastreio_entry.insert(0, rastreio)
 
+
     def configurar_tela_envio(self):
-        envio_titulo = tk.Label(self.tela_envio, text="Realização de envios.", font=("Arial", 20, "bold"))
-        envio_titulo.pack(pady=10)
+        # === SCROLL SETUP ===
+        canvas = tk.Canvas(self.tela_envio)
+        canvas.pack(side="left", fill="both", expand=True)
 
-        frame_envio = tk.Frame(self.tela_envio, padx=30)
-        frame_envio.pack(pady=22)
+        scrollbar = tk.Scrollbar(self.tela_envio, orient="vertical", command=canvas.yview)
+        scrollbar.pack(side="right", fill="y")
 
-        tk.Label(frame_envio,text="Nome do remetente:").grid(row=0, column=0, sticky="e", pady=5)
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Frame de conteúdo dentro do canvas
+        content_frame = tk.Frame(canvas)
+        canvas.create_window((0, 0), window=content_frame, anchor="n")
+
+        def on_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+
+        content_frame.bind("<Configure>", on_configure)
+
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+
+        # Tela para relizar um envio.
+        envio_titulo = tk.Label(content_frame, text="Realização de envios.", font=("Arial", 20, "bold"))
+        envio_titulo.pack(pady=5)
+
+        remetente_titulo = tk.Label(content_frame, text="Informações do remetente.", font=("Arial", 15, "bold"))
+        remetente_titulo.pack(pady=18)
+
+        frame_envio = tk.Frame(content_frame, padx=30)
+        frame_envio.pack(pady=25)
+
+        tk.Label(frame_envio,text="Nome:").grid(row=0, column=0, sticky="e", pady=5)
         self.cliente_nome_entry = tk.Entry(frame_envio, width=15)
         self.cliente_nome_entry.grid(row=0, column=1, sticky="w", pady=5)
 
-        tk.Label(frame_envio, text="CPF do remetente:").grid(row=1, column=0, sticky="e", pady=5)
+        tk.Label(frame_envio, text="CPF:").grid(row=1, column=0, sticky="e", pady=5)
         self.cliente_cpf_entry = tk.Entry(frame_envio, width=15)
         self.cliente_cpf_entry.grid(row=1, column=1, sticky="w", pady=5)
 
-        tk.Label(frame_envio, text="Logradouro do envio:").grid(row=2, column=0, sticky="e", pady=5)
+        tk.Label(frame_envio, text="Logradouro:").grid(row=2, column=0, sticky="e", pady=5)
         self.cliente_endereco_entry = tk.Entry(frame_envio, width=15)
         self.cliente_endereco_entry.grid(row=2, column=1, sticky="w", pady=5)
 
-        tk.Label(frame_envio, text="Bairro do envio:").grid(row=3, column=0, sticky="e", pady=5)
+        tk.Label(frame_envio, text="Bairro:").grid(row=3, column=0, sticky="e", pady=5)
         self.cliente_bairro_entry = tk.Entry(frame_envio, width=15)
         self.cliente_bairro_entry.grid(row=3, column=1, sticky="w", pady=5)
 
-        tk.Label(frame_envio, text="CEP do envio:").grid(row=4, column=0, sticky="e", pady=5)
+        tk.Label(frame_envio, text="CEP:").grid(row=4, column=0, sticky="e", pady=5)
         self.cliente_cep_entry = tk.Entry(frame_envio, width=15)
         self.cliente_cep_entry.grid(row=4, column=1, sticky="w", pady=5)
-    
+        
         tk.Label(frame_envio, text="Rastreio:").grid(row=5, column=0, sticky="e", pady=5)
         self.rastreio_entry = tk.Entry(frame_envio, width=20)
         self.rastreio_entry.grid(row=5, column=1, pady=5)
         btn_rastreio = tk.Button(frame_envio, text="Gerar rastreio", width=10, height=1,
-                                         command=lambda: self.gerar_codigo_rastreio())
+                                            command=lambda: self.gerar_codigo_rastreio())
         btn_rastreio.grid(row=6, column=0, columnspan=2, pady=10)
 
         tk.Label(frame_envio, text="Tipo de serviço escolhido:").grid(row=7, column=0, sticky="ne", pady=5)
@@ -351,10 +383,13 @@ class SoftwareCRM:
         tk.Radiobutton(check_frame, text="PAC", variable=self.tipo_servico, value="PAC").grid(row=0, column=1, sticky="w")
         tk.Radiobutton(check_frame, text="Carta", variable=self.tipo_servico, value="Carta").grid(row=0, column=2, sticky="w")
 
-        frame_destinatario = tk.Frame(self.tela_envio, padx=30)
+        destinatario_titulo = tk.Label(content_frame, text="Informações do destinatário.", font=("Arial", 15, "bold"))
+        destinatario_titulo.pack(pady=18)
+
+        frame_destinatario = tk.Frame(content_frame, padx=30)
         frame_destinatario.pack(pady=18)
 
-        tk.Label(frame_destinatario, text="Nome do destinatário:").grid(row=0, column=0, sticky="e", pady=5)
+        tk.Label(frame_destinatario, text="Nome:").grid(row=0, column=0, sticky="e", pady=5)
         self.destinatario_entry = tk.Entry(frame_destinatario, width=15)
         self.destinatario_entry.grid(row=0, column=1, sticky="w", pady=5)
 
@@ -362,11 +397,53 @@ class SoftwareCRM:
         self.destinatario_cpf_entry = tk.Entry(frame_destinatario, width=15)
         self.destinatario_cpf_entry.grid(row=1, column=1, sticky="w", pady=5)
 
+        tk.Label(frame_destinatario, text="Logradouro:").grid(row=2, column=0, sticky="e", pady=5)
+        self.cliente_endereco_entry = tk.Entry(frame_destinatario, width=15)
+        self.cliente_endereco_entry.grid(row=2, column=1, sticky="w", pady=5)
+
+        tk.Label(frame_destinatario, text="Bairro:").grid(row=3, column=0, sticky="e", pady=5)
+        self.cliente_bairro_entry = tk.Entry(frame_destinatario, width=15)
+        self.cliente_bairro_entry.grid(row=3, column=1, sticky="w", pady=5)
+
+        tk.Label(frame_destinatario, text="CEP:").grid(row=4, column=0, sticky="e", pady=5)
+        self.cliente_cep_entry = tk.Entry(frame_destinatario, width=15)
+        self.cliente_cep_entry.grid(row=4, column=1, sticky="w", pady=5)
+
+        pagamento_titulo = tk.Label(content_frame, text="Informações do pagamento.", font=("Arial", 15, "bold"))
+        pagamento_titulo.pack(pady=10)
+
+        frame_pagamento = tk.Frame(content_frame)
+        frame_pagamento.pack(pady=5)
+
+        tk.Label(frame_pagamento, text="Forma de pagamento:").grid(row=0, column=0, sticky="e", pady=5)
+        self.forma_pagamento_entry = tk.Entry(frame_pagamento, width=15)
+        self.forma_pagamento_entry.grid(row=0, column=1, sticky="w", pady=5)
+
         botoes_frame = tk.Frame(self.tela_envio)
         botoes_frame.pack(pady=15)
 
         tk.Button(botoes_frame, text="Voltar", width=12,
-                  command=lambda: self.mostrar_tela(self.tela_atendimento)).pack(side="bottom", padx=20, pady=20)
+                    command=lambda: self.mostrar_tela(self.tela_atendimento)).pack(side="bottom", padx=20, pady=20)
+            
+                    
+    def configurar_tela_reversa(self):
+    # Tela para realizar uma devolução.
+        
+        reversa_titulo = tk.Label(self.tela_reversa, text="Logistica reversa.", font=("Arial", 20, "bold"))
+        reversa_titulo.pack(pady=10)
+
+        frame_reversa = tk.Frame(self.tela_reversa, padx=30)
+        frame_reversa.pack(pady=22)
+
+        tk.Label(frame_reversa,text="Rastreio da devolução:").grid(row=0, column=0, sticky="e", pady=5)
+        self.cliente_nome_entry = tk.Entry(frame_reversa, width=15)
+        self.cliente_nome_entry.grid(row=0, column=1, sticky="w", pady=5)
+
+        tk.Label(frame_reversa, text="CPF do cliente:").grid(row=1, column=0, sticky="e", pady=5)
+        self.cliente_cpf_entry = tk.Entry(frame_reversa, width=15)
+        self.cliente_cpf_entry.grid(row=1, column=1, sticky="w", pady=5)
+
+        # tk.Label(frame_reversa, text="")
 
 # Iniciar a aplicação
 if __name__ == "__main__":
