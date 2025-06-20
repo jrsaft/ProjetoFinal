@@ -45,7 +45,6 @@ class SoftwareCRM:
         self.configurar_tela_atendimento()
         self.configurar_tela_envio()
         self.gerar_codigo_rastreio()
-        self.salvar_cliente()
         self.configurar_tela_reversa()
     
     def mostrar_tela(self, tela):
@@ -97,16 +96,11 @@ class SoftwareCRM:
                                 command=lambda: self.mostrar_tela(self.tela_principal))
         btn_voltar.pack(pady=10)
 
-    # def validar_rastreio(rastreio):
-    #     padrao = r'^[A-Za-z]{2}\d{9}[A-Za-z]{2}$'
-    #     if re.match(padrao, rastreio):
-    #         return True
-    #     else:
-    #         return False
 
 
 ###### CRIAR TELA DE CADASTRO DE CLIENTES E ASSOCIAR AO BOTÃO DE CADASTRO.
     def configurar_tela_cadastro_cliente(self):
+        print("Configurando")
         titulo = tk.Label(self.tela_cadastro_cliente, text="CADASTRO DE CLIENTES", font=("Arial", 22, "bold"))
         titulo.pack(pady=20)
 
@@ -182,55 +176,10 @@ class SoftwareCRM:
         tk.Checkbutton(check_frame, text="E-mail", variable=self.pref_email).pack(anchor="w")
 
         banco = DBService()
-        if self.pref_email.get():
-            comunicacao = "E-mail"
-        if self.pref_whatsapp.get():
-            comunicacao = "Whatsapp"
-
-        # btn_salvar = tk.Button(frame_extra_cliente, text="Salvar", width=12, height=1,
-        #           command=lambda: banco.criar_usuario(self.cliente_nome_entry.get(), self.cliente_data_entry.get(), self.cliente_cpf_entry.get(),
-        #            self.cliente_genero_entry.get(), self.cliente_telefone_entry.get(), self.cliente_email_entry.get(), 
-        #            self.cliente_endereco_entry.get(), self.cliente_cep_entry.get(), comunicacao )).grid(row=4, column=1, pady=5)
-        
-        #Botão de salvar cliente 
-        btn_salvar = tk.Button(frame_extra_cliente, text="Salvar", width=12, height=1, command=self.salvar_cliente)
-        btn_salvar.grid(row=4, column=1, pady=5)
-        #Botão de voltar para a tela anterior;
-        btn_voltar = tk.Button(frame_extra_cliente, text="Voltar", width=12, height=1,
-                  command=lambda: self.mostrar_tela(self.tela_perguntas_info)).grid(row=4, column=0, pady=5)
-
-    #     # Avaliações anteriores (apenas exibição por enquanto)
-    #     tk.Label(frame_extra_cliente, text="Avaliações Anteriores:").grid(row=2, column=0, sticky="ne", pady=5)
-    #     ##### CONTINUIDADE COM O SOR
-
-    #     # Tipo de serviços utilizados
-    #     ###### CADASTRAR UM CAMPO PARA ARMAZENAR OS TIPOS DE ENVIO ESCOLHIDOS PELO CLIENTE (Sedex, PAC, Logística Reversa, etc.)
-
-    #     # Histórico de envios e recebimentos
-    #     ##### ARMAZENAR AS VEZES QUE O CLIENTE ENVIOU OU RECEBEU ALGO, JUNTO COM O ENDEREÇO
-
-    #     # Ocorrências (extravio, atraso, devolução, etc.)
-    #     #### ARMAZENAR DADOS DE ALGUM PROBLEMA QUE O CLIENTE TENHA PASSADO.
-
-    #     # Chamados anteriores / tickets de suporte
-    #     tk.Label(frame_extra_cliente, text="Protocolos anteriores:").grid(row=5, column=0, sticky="e", pady=5)
-    #     #### vincular os próximos chamados para esse banco de dados, apenas informando o código.
-
-        # # Botão de salvar informações
-        # btn_salvar = tk.Button(self.tela_cadastro_cliente, text="Salvar Cadastro", command=self.salvar_cliente)
-        # btn_salvar.pack(pady=20)
-
-    def salvar_cliente(self):
-        if self.pref_email.get() and self.pref_whatsapp.get():
-            comunicacao = "E-mail e WhatsApp"
-        elif self.pref_email.get():
-            comunicacao = "E-mail"
-        elif self.pref_whatsapp.get():
-            comunicacao = "WhatsApp"
-        else:
-            comunicacao = "Nenhuma"
-
-        banco = DBService()
+        btn_salvar = tk.Button(frame_extra_cliente, text="Salvar", width=12, height=1,
+    command=lambda: (
+        print("NOME:", self.cliente_nome_entry.get()),
+        print("CPF:", self.cliente_cpf_entry.get()),
         banco.criar_usuario(
             self.cliente_nome_entry.get(),
             self.cliente_data_entry.get(),
@@ -240,8 +189,34 @@ class SoftwareCRM:
             self.cliente_email_entry.get(),
             self.cliente_endereco_entry.get(),
             self.cliente_cep_entry.get(),
-            comunicacao
+            " e ".join(
+                [x for x in ["WhatsApp" if self.pref_whatsapp.get() else "", 
+                             "E-mail" if self.pref_email.get() else ""] if x]
+            ) or "Nenhuma"
         )
+    )
+)
+        btn_salvar.grid(row=4, column=1, pady=5)
+        #Botão de voltar para a tela anterior;
+        btn_voltar = tk.Button(frame_extra_cliente, text="Voltar", width=12, height=1,
+                  command=lambda: self.mostrar_tela(self.tela_perguntas_info)).grid(row=4, column=0, pady=5)
+
+
+    # def salvar_cliente(self):
+
+
+        # banco = DBService()
+        # banco.criar_usuario(
+        #     self.cliente_nome_entry.get(),
+        #     self.cliente_data_entry.get(),
+        #     self.cliente_cpf_entry.get(),
+        #     self.cliente_genero_entry.get(),
+        #     self.cliente_telefone_entry.get(),
+        #     self.cliente_email_entry.get(),
+        #     self.cliente_endereco_entry.get(),
+        #     self.cliente_cep_entry.get(),
+        #     comunicacao
+        # )
 
 
     def configurar_tela_infos(self):
@@ -346,24 +321,24 @@ class SoftwareCRM:
         frame_envio.pack(pady=25)
 
         tk.Label(frame_envio,text="Nome:").grid(row=0, column=0, sticky="e", pady=5)
-        self.cliente_nome_entry = tk.Entry(frame_envio, width=15)
-        self.cliente_nome_entry.grid(row=0, column=1, sticky="w", pady=5)
+        self.envio_nome_entry = tk.Entry(frame_envio, width=15)
+        self.envio_nome_entry.grid(row=0, column=1, sticky="w", pady=5)
 
         tk.Label(frame_envio, text="CPF:").grid(row=1, column=0, sticky="e", pady=5)
-        self.cliente_cpf_entry = tk.Entry(frame_envio, width=15)
-        self.cliente_cpf_entry.grid(row=1, column=1, sticky="w", pady=5)
+        self.envio_cpf_entry = tk.Entry(frame_envio, width=15)
+        self.envio_cpf_entry.grid(row=1, column=1, sticky="w", pady=5)
 
         tk.Label(frame_envio, text="Logradouro:").grid(row=2, column=0, sticky="e", pady=5)
-        self.cliente_endereco_entry = tk.Entry(frame_envio, width=15)
-        self.cliente_endereco_entry.grid(row=2, column=1, sticky="w", pady=5)
+        self.envio_endereco_entry = tk.Entry(frame_envio, width=15)
+        self.envio_endereco_entry.grid(row=2, column=1, sticky="w", pady=5)
 
         tk.Label(frame_envio, text="Bairro:").grid(row=3, column=0, sticky="e", pady=5)
-        self.cliente_bairro_entry = tk.Entry(frame_envio, width=15)
-        self.cliente_bairro_entry.grid(row=3, column=1, sticky="w", pady=5)
+        self.envio_bairro_entry = tk.Entry(frame_envio, width=15)
+        self.envio_bairro_entry.grid(row=3, column=1, sticky="w", pady=5)
 
         tk.Label(frame_envio, text="CEP:").grid(row=4, column=0, sticky="e", pady=5)
-        self.cliente_cep_entry = tk.Entry(frame_envio, width=15)
-        self.cliente_cep_entry.grid(row=4, column=1, sticky="w", pady=5)
+        self.envio_cep_entry = tk.Entry(frame_envio, width=15)
+        self.envio_cep_entry.grid(row=4, column=1, sticky="w", pady=5)
         
         tk.Label(frame_envio, text="Rastreio:").grid(row=5, column=0, sticky="e", pady=5)
         self.rastreio_entry = tk.Entry(frame_envio, width=20)

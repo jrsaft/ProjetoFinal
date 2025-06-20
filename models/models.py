@@ -16,7 +16,7 @@ class Usuario(Base):
     id = Column(Integer, primary_key=True)
     nome = Column(String(50), nullable=False)
     datadenascimento = Column(Integer)
-    cpf = Column(Integer)
+    cpf = Column(String)
     genero = Column(String(10), nullable=False)
     telefone = Column(Integer)
     email = Column(String(40), nullable=False)

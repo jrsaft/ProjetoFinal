@@ -13,8 +13,8 @@ class DBService:
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
 
-    def criar_usuario(self, nome: str, datadenascimento: int, cpf: int, genero: str, telefone: int, email: str,
-                      endereco: str, cep: int, comunicacao: str) -> Usuario:
+    def criar_usuario(self, nome: str, datadenascimento: str, cpf: str, genero: str, telefone: str, email: str,
+                      endereco: str, cep: str, comunicacao: str) -> Usuario:
         # Criar novo usuário
         novo_usuario = Usuario(nome=nome, datadenascimento = datadenascimento, cpf = cpf, genero = genero, 
                                telefone = telefone, email = email, endereco = endereco, 
