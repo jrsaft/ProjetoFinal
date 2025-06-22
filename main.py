@@ -524,7 +524,7 @@ class SoftwareCRM:
         reversa_titulo = tk.Label(self.tela_reversa, text="Logistica reversa.", font=("Arial", 20, "bold"))
         reversa_titulo.pack(pady=10)
 
-        frame_reversa = tk.Frame(self.tela_infos, padx=20)
+        frame_reversa = tk.Frame(self.tela_reversa, padx=20)
         frame_reversa.pack(fill="both", expand=True, pady=10)
 
         tk.Label(frame_reversa,text="Rastreio da devolução:").grid(row=0, column=0, sticky="e", pady=5)
@@ -535,26 +535,27 @@ class SoftwareCRM:
         self.reversa_cpf_entry = tk.Entry(frame_reversa, width=15)
         self.reversa_cpf_entry.grid(row=1, column=1, sticky="w", pady=5)
 
-        tk.Label(frame_reversa, text="Forma de pagamento").grid(row=1, column=0, sticky="e", pady=5)
+        tk.Label(frame_reversa, text="Forma de pagamento").grid(row=2, column=0, sticky="e", pady=5)
         self.reversa_pagemento_entry = tk.Entry(frame_reversa, width=25)
-        self.reversa_pagemento_entry.grid(row=1, column=1, sticky="w", pady=5)
+        self.reversa_pagemento_entry.grid(row=2, column=1, sticky="w", pady=5)
+
+        self.listbox_reversa = tk.Listbox(frame_reversa, width=80, height=10, font=("Arial", 10))
+        self.listbox_reversa.grid(row=3, column=0, columnspan=2, pady=10)
 
         botoes_reversa = tk.Frame(self.tela_reversa)
-        botoes_reversa.pack(pady=15)
+        botoes_reversa.pack(pady=10)
 
         tk.Button(botoes_reversa, text="Pesquisar", width=12,
           command=self.pesquisar_rastreio).pack(side="left", padx=20)
-
-        self.listbox_reversa = tk.Listbox(frame_reversa, width=40, height=5, font=("Arial", 10)) #Cria um widget Listbox, que é uma caixa de seleção/lista para mostrar múltiplos itens, dentro do frame_infos.
-        self.listbox_reversa.grid(row=0, column=0, sticky="nsew")
-
+        
         tk.Button(botoes_reversa, text="Voltar", width=12,
-                  command=lambda: self.mostrar_tela(self.tela_principal)).pack(side="bottom", padx=20, pady=20)
+                  command=lambda: self.mostrar_tela(self.tela_atendimento)).pack(side="left", padx=20)
+
         
     def pesquisar_rastreio(self):
         rastreio = self.rastreio_entry.get().strip()
         if not rastreio:
-            messagebox.showinfo("Busca vazia", "Digite um nome para pesquisar.")
+            messagebox.showinfo("Busca vazia", "Digite o rastreio para pesquisar.")
             return
 
         banco = DBService()
