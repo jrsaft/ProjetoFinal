@@ -1,11 +1,11 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
-import re
+from tkinter import ttk, messagebox,filedialog
 from datetime import datetime
 import random
 import string
-from models import bancodedados
 from models.bancodedados import DBService
+from PIL import Image, ImageTk
+import csv
 
 class SoftwareCRM:
     def __init__(self, root): # root é o objeto da classe
@@ -45,6 +45,12 @@ class SoftwareCRM:
         self.configurar_tela_envio()
         self.gerar_codigo_rastreio()
         self.configurar_tela_reversa()
+        self.configurar_tela_financeiro()
+        self.configurar_tela_logistica()
+
+        self.banco_usuarios = DBService(banco='usuarios')
+        self.banco_envios = DBService(banco='envios')
+
     
     def mostrar_tela(self, tela):
         tela.tkraise()
@@ -53,7 +59,15 @@ class SoftwareCRM:
         frame = tk.Frame(self.tela_principal, padx=20, pady=20)#Criação do frame
         frame.place(relx=0.5, rely=0.5, anchor="center")
 
-        titulo = tk.Label(frame, text="Plataforma Inteligente de atendimento ao cliente", font=("Arial", 16, "bold") )
+        imagem = Image.open("models/logo.jpg")
+        imagem = imagem.resize((200, 120))  # Redimensiona conforme necessário
+        imagem_tk = ImageTk.PhotoImage(imagem)
+
+        label_imagem = tk.Label(frame, image=imagem_tk)
+        label_imagem.image = imagem_tk  # MANTER a referência
+        label_imagem.pack(pady=(0, 10))  # Espaço abaixo da imagem
+
+        titulo = tk.Label(frame, text="People Control", font=("Arial", 16, "bold") )
         titulo.pack(pady=(0,30)) #(cima,baixo)
 
         btn_info_cliente = tk.Button(frame, text="Clientes", width=25, height=2,
@@ -139,7 +153,7 @@ class SoftwareCRM:
         self.cliente_email_entry.grid(row=1, column=1, sticky="w", pady=5)
 
         tk.Label(frame_contato_cliente, text="Endereço:").grid(row=2, column=0, sticky="e", pady=5)
-        self.cliente_endereco_entry = tk.Entry(frame_cadastro_cliente, width=30)
+        self.cliente_endereco_entry = tk.Entry(frame_contato_cliente, width=30)
         self.cliente_endereco_entry.grid(row=2, column=1, sticky="w", pady=5)
 
         tk.Label(frame_contato_cliente, text="CEP:").grid(row=3, column=0, sticky="e", pady=5)
@@ -171,12 +185,9 @@ class SoftwareCRM:
         tk.Checkbutton(check_frame, text="WhatsApp", variable=self.pref_whatsapp).pack(anchor="w")
         tk.Checkbutton(check_frame, text="E-mail", variable=self.pref_email).pack(anchor="w")
 
-        banco = DBService()
         btn_salvar = tk.Button(frame_extra_cliente, text="Salvar", width=12, height=1,
     command=lambda: (
-        print("NOME:", self.cliente_nome_entry.get()),
-        print("CPF:", self.cliente_cpf_entry.get()),
-        banco.criar_usuario(
+        self.banco_usuarios.criar_usuario(
             self.cliente_nome_entry.get(),
             self.cliente_data_entry.get(),
             self.cliente_cpf_entry.get(),
@@ -227,8 +238,7 @@ class SoftwareCRM:
             messagebox.showinfo("Busca vazia", "Digite um nome para pesquisar.")
             return
 
-        banco = DBService()
-        resultados = banco.buscar_usuarios_por_nome(nome)
+        resultados = self.banco_usuarios.buscar_usuarios_por_nome(nome)
 
         self.listbox_clientes.delete(0, tk.END)
         if not resultados:
@@ -236,13 +246,12 @@ class SoftwareCRM:
             return
         for u in resultados:
             cliente_info = (
-                f"{u.nome}\n"
-                f"CPF: {u.cpf}  |  Nascimento: {u.datadenascimento}\n"
-                f"Gênero: {u.genero}  |  Telefone: {u.telefone}\n"
-                f"E-mail: {u.email}\n"
-                f"Endereço: {u.endereco} - CEP: {u.cep}\n"
-                f"Preferência: {u.comunicacao}\n"
-                "----------------------------------------"
+                f"{u.nome} | \n"
+                f"CPF: {u.cpf}  |  Nascimento: {u.datadenascimento} | \n"
+                f"Gênero: {u.genero}  |  Telefone: {u.telefone} | \n"
+                f"E-mail: {u.email} | \n"
+                f"Endereço: {u.endereco} - CEP: {u.cep} | \n"
+                f"Preferência: {u.comunicacao} \n"
             )
             self.listbox_clientes.insert(tk.END, cliente_info)
             
@@ -395,14 +404,13 @@ class SoftwareCRM:
             command=self.mostrar_valor_envio)
         btn_valor.grid(row=2, column=0, columnspan=2, pady=10)
 
-        banco = DBService()
         btn_salvar_envio = tk.Button(
             frame_pagamento,
             text="Salvar", 
             width=12, 
             height=1,
     command=lambda: (
-        banco.criar_envio(
+        self.banco_envios.criar_envio(
             self.envio_nome_entry.get(),
             self.envio_cpf_entry.get(),
             self.envio_endereco_entry.get(),
@@ -559,8 +567,7 @@ class SoftwareCRM:
             messagebox.showinfo("Busca vazia", "Digite o rastreio para pesquisar.")
             return
 
-        banco = DBService()
-        resultados = banco.buscar_envios_por_rastreio(rastreio)
+        resultados = self.banco_envios.buscar_envios_por_rastreio(rastreio)
 
         self.listbox_reversa.delete(0, tk.END)
         if not resultados:
@@ -573,6 +580,183 @@ class SoftwareCRM:
                 f"Destinatario: {u.nomedodestinatario} - CEP: {u.cepdodestinatario} - "
                 f"Endereço de retorno: {u.enderecodoremetente} - CEP: {u.cepdoremetente} "
             )
+
+    def criar_entry(self, frame, label_text, row):
+        tk.Label(frame, text=label_text).grid(row=row, column=0, padx=5, pady=5, sticky="e")
+        var = tk.StringVar()
+        tk.Entry(frame, textvariable=var, width=40).grid(row=row, column=1, padx=5, pady=5)
+        return var
+    
+    def configurar_tela_financeiro(self):
+        financeiro_titulo = tk.Label(self.tela_financeiro, text="Tela Financeira", font=("Arial", 20, "bold"))
+        financeiro_titulo.pack(pady=10)
+        
+        frame_financeiro = tk.Frame(self.tela_financeiro, padx=20)
+        frame_financeiro.pack(fill="both", expand=True, pady=10)
+
+        form_frame = tk.Frame(frame_financeiro)
+        form_frame.pack(pady=10)
+
+        self.cliente_var = self.criar_entry(form_frame, "Cliente:", 0)
+        self.produto_var = self.criar_entry(form_frame, "Produto:", 1)
+        self.valor_var = self.criar_entry(form_frame, "Valor (R$):", 2)
+
+        tk.Label(form_frame, text="Forma de Pagamento:").grid(row=3, column=0, padx=5, pady=5, sticky="e")
+        self.forma_pagamento_var = tk.StringVar()
+        forma_pagamento_combo = ttk.Combobox(form_frame, textvariable=self.forma_pagamento_var, state="readonly",
+                                             values=["Crédito", "Débito", "Pix", "Boleto"])
+        forma_pagamento_combo.grid(row=3, column=1, padx=5, pady=5)
+        forma_pagamento_combo.current(0)
+
+        self.tree_financeiro = ttk.Treeview(frame_financeiro, columns=("Cliente", "Produto", "Valor", "Pagamento", "Data"), show="headings")
+        for col in ("Cliente", "Produto", "Valor", "Pagamento", "Data"):
+            self.tree_financeiro.heading(col, text=col)
+            self.tree_financeiro.column(col, width=150)
+        self.tree_financeiro.pack(pady=10, fill="x", expand=True)
+
+        def adicionar_compra():
+            cliente = self.cliente_var.get()
+            produto = self.produto_var.get()
+            valor = self.valor_var.get()
+            forma = self.forma_pagamento_var.get()
+            data = datetime.now().strftime("%d/%m/%Y")
+
+            if cliente and produto and valor and forma:
+                self.tree_financeiro.insert("", "end", values=(cliente, produto, valor, forma, data))
+                self.cliente_var.set("")
+                self.produto_var.set("")
+                self.valor_var.set("")
+                self.forma_pagamento_var.set("Crédito")
+            else:
+                messagebox.showwarning("Campos vazios", "Preencha todos os campos.")
+
+        def exportar_csv():
+            caminho_arquivo = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+            if not caminho_arquivo:
+                return
+
+            try:
+                with open(caminho_arquivo, mode="w", newline='', encoding='utf-8') as file:
+                    writer = csv.writer(file)
+                    writer.writerow(["Cliente", "Produto", "Valor", "Forma de Pagamento", "Data"])
+                    for row in self.tree_financeiro.get_children():
+                        writer.writerow(self.tree_financeiro.item(row)["values"])
+                messagebox.showinfo("Exportado", f"Relatório salvo em:\n{caminho_arquivo}")
+            except Exception as e:
+                messagebox.showerror("Erro ao exportar", str(e))
+
+        def remover_compra():
+            item = self.tree_financeiro.selection()
+            if item:
+                self.tree_financeiro.delete(item)
+            else:
+                messagebox.showinfo("Remover", "Selecione um item para remover.")
+
+        tk.Button(frame_financeiro, text="Registrar Compra", command=adicionar_compra).pack(pady=5)
+        tk.Button(frame_financeiro, text="Remover Registro", command=remover_compra).pack(pady=5)
+        tk.Button(frame_financeiro, text="Exportar Relatório (CSV)", command=exportar_csv).pack(pady=5)
+        tk.Button(frame_financeiro, text="Voltar ao Menu", command=lambda: self.mostrar_tela(self.tela_principal)).pack(pady=10)
+
+        return frame_financeiro
+
+    def configurar_tela_logistica (self):
+
+        logistica_titulo = tk.Label(self.tela_logistica, text="Logística - Registro de Entregas", font=("Arial", 16))
+        logistica_titulo.pack(pady=10)
+
+        frame_logistica = tk.Frame(self.tela_logistica, padx=20)
+        frame_logistica.pack(fill="both", expand=True, pady=10)
+
+        form_frame_logistica = tk.Frame(frame_logistica)
+        form_frame_logistica.pack(pady=10)
+
+        self.rua_var = self.criar_entry(form_frame_logistica, "Rua:", 0)
+        self.cidade_var = self.criar_entry(form_frame_logistica, "Cidade:", 1)
+        self.cep_var = self.criar_entry(form_frame_logistica, "CEP:", 2)
+        self.rastreio_var = self.criar_entry(form_frame_logistica, "Código de Rastreio:", 3)
+
+        self.tree_logistica = ttk.Treeview(frame_logistica, columns=("Rua", "Cidade", "CEP", "Rastreio"), show="headings")
+        for col in ("Rua", "Cidade", "CEP", "Rastreio"):
+            self.tree_logistica.heading(col, text=col)
+            self.tree_logistica.column(col, width=150)
+        self.tree_logistica.pack(pady=10, fill="x", expand=True)
+
+        tk.Button(frame_logistica, text="Registrar Entrega", command=self.adicionar_entrega_logistica).pack(pady=5)
+        tk.Button(frame_logistica, text="Remover Registro", command=lambda: self.remover_item(self.tree_logistica)).pack(pady=5)
+        tk.Button(frame_logistica, text="Exportar Histórico (CSV)", command=self.exportar_logistica_csv).pack(pady=5)
+
+        busca_frame = tk.Frame(frame_logistica)
+        busca_frame.pack(pady=10)
+        tk.Label(busca_frame, text="Buscar por Cidade ou Código:").pack(side="left", padx=5)
+        self.busca_var = tk.StringVar()
+        tk.Entry(busca_frame, textvariable=self.busca_var, width=30).pack(side="left", padx=5)
+        tk.Button(busca_frame, text="Buscar", command=self.buscar_logistica).pack(side="left")
+
+        tk.Button(frame_logistica, text="Voltar ao Menu", command=lambda: self.mostrar_tela(self.tela_principal)).pack(pady=10)
+
+        return frame_logistica
+
+    def adicionar_entrega_logistica(self):
+        rua = self.rua_var.get()
+        cidade = self.cidade_var.get()
+        cep = self.cep_var.get()
+        rastreio = self.rastreio_var.get()
+
+        if rua and cidade and cep and rastreio:
+            self.tree_logistica.insert("", "end", values=(rua, cidade, cep, rastreio))
+            self.rua_var.set("")
+            self.cidade_var.set("")
+            self.cep_var.set("")
+            self.rastreio_var.set("")
+        else:
+            messagebox.showwarning("Campos vazios", "Preencha todos os campos para registrar a entrega.")
+
+    def exportar_logistica_csv(self):
+        caminho_arquivo = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+        if not caminho_arquivo:
+            return
+
+        try:
+            with open(caminho_arquivo, mode="w", newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerow(["Rua", "Cidade", "CEP", "Código de Rastreio"])
+                for row in self.tree_logistica.get_children():
+                    writer.writerow(self.tree_logistica.item(row)["values"])
+            messagebox.showinfo("Exportado", f"Histórico salvo em:\n{caminho_arquivo}")
+        except Exception as e:
+            messagebox.showerror("Erro ao exportar", str(e))
+
+    def buscar_logistica(self):
+        termo = self.busca_var.get().lower().strip()
+        if not termo:
+            messagebox.showinfo("Busca vazia", "Digite um termo para buscar.")
+            return
+
+        resultados = []
+        for item in self.tree_logistica.get_children():
+            valores = self.tree_logistica.item(item)["values"]
+            if termo in str(valores[1]).lower() or termo in str(valores[3]).lower():
+                resultados.append((item, valores))
+
+        if not resultados:
+            messagebox.showinfo("Nenhum resultado", "Nenhum registro encontrado.")
+            return
+
+        for item in self.tree_logistica.get_children():
+            self.tree_logistica.item(item, tags="")
+
+        for item, _ in resultados:
+            self.tree_logistica.item(item, tags=("encontrado",))
+
+        self.tree_logistica.tag_configure("encontrado", background="lightblue")
+
+    def remover_item(self, tree):
+        item = tree.selection()
+        if item:
+            tree.delete(item)
+        else:
+            messagebox.showinfo("Remover", "Selecione um item para remover.")
+
 
 # Iniciar a aplicação
 if __name__ == "__main__":

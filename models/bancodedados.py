@@ -6,11 +6,15 @@ import sqlite3
 
 class DBService:
 
-    def __init__(self):
-        # Conectar ao banco
-        self.engine = create_engine('sqlite:///database.db')
+    def __init__(self, banco):
+        if banco == 'usuarios':
+            self.engine = create_engine('sqlite:///database.db')
+        elif banco == 'envios':
+            self.engine = create_engine('sqlite:///database.envio.db')
+        else:
+            raise ValueError("Tipo de banco inválido")
+
         Base.metadata.create_all(self.engine)
-        # Criar uma sessão
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
 
@@ -42,14 +46,6 @@ class DBService:
             print(e)
             usuarios = []
         return usuarios
-
-    def __init__(self):
-        # Conectar ao banco
-        self.engine = create_engine('sqlite:///database.envio.db')
-        Base.metadata.create_all(self.engine)
-        # Criar uma sessão
-        Session = sessionmaker(bind=self.engine)
-        self.session = Session()
 
     def criar_envio(self, nomedoremetente: str, cpfdoremetente: str, enderecodoremetente: str, bairrodoremetente: str,  
                     cepdoremetente: str, rastreio: str, tipodeservico: str, nomedodestinatario: str,

@@ -25,7 +25,7 @@ class Usuario(Base):
     comunicacao = Column(String(10), nullable=False)
 
 def __repr__(self):
-    return f"<Usuario(nome='{self.nome}', idade={self.idade})>"
+    return f"<Usuario(nome='{self.nome}', cpf ={self.cpf})>"
 
 class Envios(Base):
     __tablename__= "Envio" 
