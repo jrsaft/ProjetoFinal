@@ -26,3 +26,28 @@ class Usuario(Base):
 
 def __repr__(self):
     return f"<Usuario(nome='{self.nome}', idade={self.idade})>"
+
+class Envios(Base):
+    __tablename__= "Envio" 
+
+    id = Column(Integer, primary_key=True)
+    
+    nomedoremetente = Column(String, nullable=False)
+    cpfdoremetente = Column(String, nullable=False)
+    enderecodoremetente = Column(String, nullable=False)
+    bairrodoremetente = Column(String, nullable=False)
+    cepdoremetente = Column(String, nullable=False)
+
+    rastreio = Column(String, nullable=False)
+    tipodeservico = Column(String, nullable=False)  
+
+    nomedodestinatario = Column(String, nullable=False)
+    cpfdodestinatario = Column(String, nullable=False)
+    enderecododestinatario = Column(String, nullable=False)
+    bairrododestinatario = Column(String, nullable=False)
+    cepdodestinatario = Column(String, nullable=False)
+
+    formadepagamento = Column(String, nullable=False)   
+
+def __repr__(self):
+    return f"<Envio(rastreio='{self.rastreio}')>"

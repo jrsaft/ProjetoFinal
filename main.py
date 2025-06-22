@@ -15,7 +15,6 @@ class SoftwareCRM:
         self.root.resizable(True, True) #Tornar a janela redimensionável horizontal e verticalmente.
 
         self.container = tk.Frame(root) #Cria um Frame dentro da janela, que é um contêiner em que você pode colocar outros widgets (botões, labels, etc.).
-        self.container = tk.Frame(root)
         self.container.pack(fill="both", expand=True)
 
         self.container.grid_rowconfigure(0, weight=1) #row -> linhas.
@@ -96,11 +95,8 @@ class SoftwareCRM:
                                 command=lambda: self.mostrar_tela(self.tela_principal))
         btn_voltar.pack(pady=10)
 
-
-
 ###### CRIAR TELA DE CADASTRO DE CLIENTES E ASSOCIAR AO BOTÃO DE CADASTRO.
     def configurar_tela_cadastro_cliente(self):
-        print("Configurando")
         titulo = tk.Label(self.tela_cadastro_cliente, text="CADASTRO DE CLIENTES", font=("Arial", 22, "bold"))
         titulo.pack(pady=20)
 
@@ -143,7 +139,7 @@ class SoftwareCRM:
         self.cliente_email_entry.grid(row=1, column=1, sticky="w", pady=5)
 
         tk.Label(frame_contato_cliente, text="Endereço:").grid(row=2, column=0, sticky="e", pady=5)
-        self.cliente_endereco_entry = tk.Entry(frame_contato_cliente, width=30)
+        self.cliente_endereco_entry = tk.Entry(frame_cadastro_cliente, width=30)
         self.cliente_endereco_entry.grid(row=2, column=1, sticky="w", pady=5)
 
         tk.Label(frame_contato_cliente, text="CEP:").grid(row=3, column=0, sticky="e", pady=5)
@@ -202,23 +198,6 @@ class SoftwareCRM:
                   command=lambda: self.mostrar_tela(self.tela_perguntas_info)).grid(row=4, column=0, pady=5)
 
 
-    # def salvar_cliente(self):
-
-
-        # banco = DBService()
-        # banco.criar_usuario(
-        #     self.cliente_nome_entry.get(),
-        #     self.cliente_data_entry.get(),
-        #     self.cliente_cpf_entry.get(),
-        #     self.cliente_genero_entry.get(),
-        #     self.cliente_telefone_entry.get(),
-        #     self.cliente_email_entry.get(),
-        #     self.cliente_endereco_entry.get(),
-        #     self.cliente_cep_entry.get(),
-        #     comunicacao
-        # )
-
-
     def configurar_tela_infos(self):
         infos_titulo = tk.Label(self.tela_infos, text="Informações dos clientes", font=("Arial", 20, "bold"))
         infos_titulo.pack(pady=10)
@@ -230,29 +209,43 @@ class SoftwareCRM:
         botoes_frame = tk.Frame(self.tela_infos)
         botoes_frame.pack(pady=15)
 
-        tk.Button(botoes_frame, text="Pesquisar", width=12, command=self.pesquisar_cliente).pack(side="left", padx=20)
+        tk.Button(botoes_frame, text="Pesquisar", width=12,
+          command=self.pesquisar_cliente).pack(side="left", padx=20)
+        
+        tk.Button(botoes_frame, text="Voltar", width=12,
+                  command=lambda: self.mostrar_tela(self.tela_principal)).pack(side="bottom", padx=20, pady=20)
 
         frame_infos = tk.Frame(self.tela_infos, padx=30)
         frame_infos.pack(fill="both", expand=True, pady=10)
 
         self.listbox_clientes = tk.Listbox(frame_infos, width=40, height=5, font=("Arial", 10)) #Cria um widget Listbox, que é uma caixa de seleção/lista para mostrar múltiplos itens, dentro do frame_infos.
         self.listbox_clientes.pack(side="left", fill="both", expand=True)
-
-        tk.Button(botoes_frame, text="Voltar", width=12,
-                  command=lambda: self.mostrar_tela(self.tela_principal)).pack(side="bottom", padx=20, pady=20)
         
     def pesquisar_cliente(self):
-        nome_digitado = self.cliente_entry.get().strip().lower()
-        self.listbox_clientes.selection_clear(0, tk.END)  # Limpa seleções anteriores
+        nome = self.cliente_entry.get().strip()
+        if not nome:
+            messagebox.showinfo("Busca vazia", "Digite um nome para pesquisar.")
+            return
 
-        for idx in range(self.listbox_clientes.size()):
-            item = self.listbox_clientes.get(idx).lower()
-            if nome_digitado in item:
-                self.listbox_clientes.selection_set(idx)
-                self.listbox_clientes.see(idx)  # Garante que o item selecionado fique visível
-                return
+        banco = DBService()
+        resultados = banco.buscar_usuarios_por_nome(nome)
 
-        messagebox.showinfo("Resultado da busca", "Cliente não encontrado.")
+        self.listbox_clientes.delete(0, tk.END)
+        if not resultados:
+            messagebox.showinfo("Resultado da busca", "Cliente não encontrado.")
+            return
+        for u in resultados:
+            cliente_info = (
+                f"{u.nome}\n"
+                f"CPF: {u.cpf}  |  Nascimento: {u.datadenascimento}\n"
+                f"Gênero: {u.genero}  |  Telefone: {u.telefone}\n"
+                f"E-mail: {u.email}\n"
+                f"Endereço: {u.endereco} - CEP: {u.cep}\n"
+                f"Preferência: {u.comunicacao}\n"
+                "----------------------------------------"
+            )
+            self.listbox_clientes.insert(tk.END, cliente_info)
+            
 
     def configurar_tela_atendimento(self):
     # Tela que mostra os três botões para Envio, Logistica Reversa e Voltar.
@@ -308,7 +301,8 @@ class SoftwareCRM:
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
-        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        canvas.bind("<Enter>", lambda e: canvas.bind_all("<MouseWheel>", _on_mousewheel))
+        canvas.bind("<Leave>", lambda e: canvas.unbind_all("<MouseWheel>"))
 
         # Tela para relizar um envio.
         envio_titulo = tk.Label(content_frame, text="Realização de envios.", font=("Arial", 20, "bold"))
@@ -373,16 +367,16 @@ class SoftwareCRM:
         self.destinatario_cpf_entry.grid(row=1, column=1, sticky="w", pady=5)
 
         tk.Label(frame_destinatario, text="Logradouro:").grid(row=2, column=0, sticky="e", pady=5)
-        self.cliente_endereco_entry = tk.Entry(frame_destinatario, width=15)
-        self.cliente_endereco_entry.grid(row=2, column=1, sticky="w", pady=5)
+        self.destinatario_endereco_entry = tk.Entry(frame_destinatario, width=15)
+        self.destinatario_endereco_entry.grid(row=2, column=1, sticky="w", pady=5)
 
         tk.Label(frame_destinatario, text="Bairro:").grid(row=3, column=0, sticky="e", pady=5)
-        self.cliente_bairro_entry = tk.Entry(frame_destinatario, width=15)
-        self.cliente_bairro_entry.grid(row=3, column=1, sticky="w", pady=5)
+        self.destinatario_bairro_entry = tk.Entry(frame_destinatario, width=15)
+        self.destinatario_bairro_entry.grid(row=3, column=1, sticky="w", pady=5)
 
         tk.Label(frame_destinatario, text="CEP:").grid(row=4, column=0, sticky="e", pady=5)
-        self.cliente_cep_entry = tk.Entry(frame_destinatario, width=15)
-        self.cliente_cep_entry.grid(row=4, column=1, sticky="w", pady=5)
+        self.destinatario_cep_entry = tk.Entry(frame_destinatario, width=15)
+        self.destinatario_cep_entry.grid(row=4, column=1, sticky="w", pady=5)
 
         pagamento_titulo = tk.Label(content_frame, text="Informações do pagamento.", font=("Arial", 15, "bold"))
         pagamento_titulo.pack(pady=10)
@@ -394,31 +388,192 @@ class SoftwareCRM:
         self.forma_pagamento_entry = tk.Entry(frame_pagamento, width=15)
         self.forma_pagamento_entry.grid(row=0, column=1, sticky="w", pady=5)
 
-        botoes_frame = tk.Frame(self.tela_envio)
-        botoes_frame.pack(pady=15)
+        tk.Label(frame_pagamento, text="Valor:").grid(row=1, column=0, sticky="e", pady=5)
+        self.valor_entry =tk.Entry(frame_pagamento, width=15)
+        self.valor_entry.grid(row=1, column=1, pady=5)
+        btn_valor = tk.Button(frame_pagamento, text="Calcular valor", width=12, height=1,
+            command=self.mostrar_valor_envio)
+        btn_valor.grid(row=2, column=0, columnspan=2, pady=10)
 
-        tk.Button(botoes_frame, text="Voltar", width=12,
-                    command=lambda: self.mostrar_tela(self.tela_atendimento)).pack(side="bottom", padx=20, pady=20)
+        banco = DBService()
+        btn_salvar_envio = tk.Button(
+            frame_pagamento,
+            text="Salvar", 
+            width=12, 
+            height=1,
+    command=lambda: (
+        banco.criar_envio(
+            self.envio_nome_entry.get(),
+            self.envio_cpf_entry.get(),
+            self.envio_endereco_entry.get(),
+            self.envio_bairro_entry.get(),
+            self.envio_cep_entry.get(),
+            self.rastreio_entry.get(),
+            self.tipo_servico.get(),
+            self.destinatario_entry.get(),
+            self.destinatario_cpf_entry.get(),
+            self.destinatario_endereco_entry.get(),
+            self.destinatario_bairro_entry.get(),
+            self.destinatario_cep_entry.get(),
+            self.forma_pagamento_entry.get())))
+        btn_salvar_envio.grid(row=3, column=0, pady=10)
+
+        btn_voltar_envio = tk.Button(
+            frame_pagamento,
+            text="Voltar",
+            width=12,
+            command=lambda: self.mostrar_tela(self.tela_atendimento)
+        )
+        btn_voltar_envio.grid(row=3, column=1, padx=15)
+
+
+    def calcular_valor_envio(self, cep_destino: str) -> float:
+        # Remove traço e converte para inteiro
+        try:
+            cep_num = int(cep_destino.replace("-", ""))
+        except ValueError:
+            return "Erro"
+
+        # Região Sudeste
+        if 1000000 <= cep_num <= 19999999:
+            return 20.00  # São Paulo
+        elif 20000000 <= cep_num <= 28999999:
+            return 22.00  # Rio de Janeiro
+        elif 29000000 <= cep_num <= 29999999:
+            return 22.00  # Espírito Santo
+        elif 30000000 <= cep_num <= 39999999:
+            return 21.00  # Minas Gerais
+
+        # Região Sul
+        elif 80000000 <= cep_num <= 87999999:
+            return 23.00  # Paraná
+        elif 88000000 <= cep_num <= 89999999:
+            return 23.00  # Santa Catarina
+        elif 90000000 <= cep_num <= 99999999:
+            return 24.00  # Rio Grande do Sul
+
+        # Região Nordeste
+        elif 40000000 <= cep_num <= 48999999:
+            return 26.00  # Bahia
+        elif 49000000 <= cep_num <= 49999999:
+            return 26.50  # Sergipe
+        elif 50000000 <= cep_num <= 56999999:
+            return 27.00  # Pernambuco
+        elif 57000000 <= cep_num <= 57999999:
+            return 27.00  # Alagoas
+        elif 58000000 <= cep_num <= 58999999:
+            return 27.00  # Paraíba
+        elif 59000000 <= cep_num <= 59999999:
+            return 27.50  # RN
+        elif 60000000 <= cep_num <= 63999999:
+            return 28.00  # Ceará
+        elif 64000000 <= cep_num <= 64999999:
+            return 28.00  # Piauí
+        elif 65000000 <= cep_num <= 65999999:
+            return 28.00  # Maranhão
+
+        # Região Norte
+        elif 66000000 <= cep_num <= 68899999:
+            return 29.00  # Pará
+        elif 68900000 <= cep_num <= 68999999:
+            return 30.00  # Amapá
+        elif 69000000 <= cep_num <= 69299999:
+            return 30.00  # Amazonas parte 1
+        elif 69300000 <= cep_num <= 69399999:
+            return 30.00  # Roraima
+        elif 69400000 <= cep_num <= 69899999:
+            return 30.00  # Amazonas parte 2
+        elif 69900000 <= cep_num <= 69999999:
+            return 30.00  # Acre
+        elif 76800000 <= cep_num <= 76999999:
+            return 30.00  # Rondônia
+        elif 77000000 <= cep_num <= 77999999:
+            return 29.00  # Tocantins
+
+        # Região Centro-Oeste
+        elif 70000000 <= cep_num <= 72799999:
+            return 25.00  # DF parte 1
+        elif 72800000 <= cep_num <= 72999999:
+            return 25.00  # GO parte 1
+        elif 73000000 <= cep_num <= 73699999:
+            return 25.00  # DF parte 2
+        elif 73700000 <= cep_num <= 76799999:
+            return 25.00  # GO parte 2
+        elif 78000000 <= cep_num <= 78899999:
+            return 26.00  # MT
+        elif 79000000 <= cep_num <= 79999999:
+            return 26.00  # MS
+
+        # Caso não se encaixe em nenhuma faixa
+        return 35.00  # Valor padrão para CEPs não reconhecidos
             
-                    
+    def mostrar_valor_envio(self):
+        cep = self.destinatario_cep_entry.get()
+        valor = self.calcular_valor_envio(cep)
+        self.valor_entry.delete(0, tk.END)
+
+        if valor == "Erro":
+            self.valor_entry.insert(0, "CEP inválido")
+        else:
+            self.valor_entry.insert(0, f"R$ {valor:.2f}")
+
+
     def configurar_tela_reversa(self):
     # Tela para realizar uma devolução.
         
         reversa_titulo = tk.Label(self.tela_reversa, text="Logistica reversa.", font=("Arial", 20, "bold"))
         reversa_titulo.pack(pady=10)
 
-        frame_reversa = tk.Frame(self.tela_reversa, padx=30)
-        frame_reversa.pack(pady=22)
+        frame_reversa = tk.Frame(self.tela_infos, padx=20)
+        frame_reversa.pack(fill="both", expand=True, pady=10)
 
         tk.Label(frame_reversa,text="Rastreio da devolução:").grid(row=0, column=0, sticky="e", pady=5)
-        self.cliente_nome_entry = tk.Entry(frame_reversa, width=15)
-        self.cliente_nome_entry.grid(row=0, column=1, sticky="w", pady=5)
+        self.reversa_rastreio_entry = tk.Entry(frame_reversa, width=15)
+        self.reversa_rastreio_entry.grid(row=0, column=1, sticky="w", pady=5)
 
         tk.Label(frame_reversa, text="CPF do cliente:").grid(row=1, column=0, sticky="e", pady=5)
-        self.cliente_cpf_entry = tk.Entry(frame_reversa, width=15)
-        self.cliente_cpf_entry.grid(row=1, column=1, sticky="w", pady=5)
+        self.reversa_cpf_entry = tk.Entry(frame_reversa, width=15)
+        self.reversa_cpf_entry.grid(row=1, column=1, sticky="w", pady=5)
 
-        # tk.Label(frame_reversa, text="")
+        tk.Label(frame_reversa, text="Forma de pagamento").grid(row=1, column=0, sticky="e", pady=5)
+        self.reversa_pagemento_entry = tk.Entry(frame_reversa, width=25)
+        self.reversa_pagemento_entry.grid(row=1, column=1, sticky="w", pady=5)
+
+        botoes_reversa = tk.Frame(self.tela_reversa)
+        botoes_reversa.pack(pady=15)
+
+        tk.Button(botoes_reversa, text="Pesquisar", width=12,
+          command=self.pesquisar_rastreio).pack(side="left", padx=20)
+
+        self.listbox_reversa = tk.Listbox(frame_reversa, width=40, height=5, font=("Arial", 10)) #Cria um widget Listbox, que é uma caixa de seleção/lista para mostrar múltiplos itens, dentro do frame_infos.
+        self.listbox_reversa.grid(row=0, column=0, sticky="nsew")
+
+        tk.Button(botoes_reversa, text="Voltar", width=12,
+                  command=lambda: self.mostrar_tela(self.tela_principal)).pack(side="bottom", padx=20, pady=20)
+        
+    def pesquisar_rastreio(self):
+        rastreio = self.rastreio_entry.get().strip()
+        if not rastreio:
+            messagebox.showinfo("Busca vazia", "Digite um nome para pesquisar.")
+            return
+
+        banco = DBService()
+        resultados = banco.buscar_envios_por_rastreio(rastreio)
+
+        self.listbox_reversa.delete(0, tk.END)
+        if not resultados:
+            messagebox.showinfo("Resultado da busca", "Envio não encontrado.")
+            return
+        for u in resultados:
+            self.listbox_reversa.insert(
+                tk.END,
+                ########## f"{u.nome} — CPF: {u.cpf} - Data de nascimento: {u.datadenascimento} - \n "
+                f"Gênero: {u.genero} - Telefone: {u.telefone} - "
+                f"E-mail: {u.email} - Endereço: {u.endereco} - CEP: {u.cep} - "
+                f"Preferência por comunicação: {u.comunicacao}"
+            )
+    
+
 
 # Iniciar a aplicação
 if __name__ == "__main__":
