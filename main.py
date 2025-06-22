@@ -415,7 +415,8 @@ class SoftwareCRM:
             self.destinatario_endereco_entry.get(),
             self.destinatario_bairro_entry.get(),
             self.destinatario_cep_entry.get(),
-            self.forma_pagamento_entry.get())))
+            self.forma_pagamento_entry.get(),
+            self.valor_entry.get())))
         btn_salvar_envio.grid(row=3, column=0, pady=10)
 
         btn_voltar_envio = tk.Button(
@@ -539,7 +540,7 @@ class SoftwareCRM:
         self.reversa_pagemento_entry = tk.Entry(frame_reversa, width=25)
         self.reversa_pagemento_entry.grid(row=2, column=1, sticky="w", pady=5)
 
-        self.listbox_reversa = tk.Listbox(frame_reversa, width=80, height=10, font=("Arial", 10))
+        self.listbox_reversa = tk.Listbox(frame_reversa, width=150, height=25, font=("Arial", 10))
         self.listbox_reversa.grid(row=3, column=0, columnspan=2, pady=10)
 
         botoes_reversa = tk.Frame(self.tela_reversa)
@@ -553,7 +554,7 @@ class SoftwareCRM:
 
         
     def pesquisar_rastreio(self):
-        rastreio = self.rastreio_entry.get().strip()
+        rastreio = self.reversa_rastreio_entry.get().strip()
         if not rastreio:
             messagebox.showinfo("Busca vazia", "Digite o rastreio para pesquisar.")
             return
@@ -568,13 +569,10 @@ class SoftwareCRM:
         for u in resultados:
             self.listbox_reversa.insert(
                 tk.END,
-                ########## f"{u.nome} — CPF: {u.cpf} - Data de nascimento: {u.datadenascimento} - \n "
-                f"Gênero: {u.genero} - Telefone: {u.telefone} - "
-                f"E-mail: {u.email} - Endereço: {u.endereco} - CEP: {u.cep} - "
-                f"Preferência por comunicação: {u.comunicacao}"
+                f"Rastreio {u.rastreio} \n "
+                f"Destinatario: {u.nomedodestinatario} - CEP: {u.cepdodestinatario} - "
+                f"Endereço de retorno: {u.enderecodoremetente} - CEP: {u.cepdoremetente} "
             )
-    
-
 
 # Iniciar a aplicação
 if __name__ == "__main__":

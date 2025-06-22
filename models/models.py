@@ -47,7 +47,8 @@ class Envios(Base):
     bairrododestinatario = Column(String, nullable=False)
     cepdodestinatario = Column(String, nullable=False)
 
-    formadepagamento = Column(String, nullable=False)   
+    formadepagamento = Column(String, nullable=False)
+    valor = Column(String, nullable=False)   
 
 def __repr__(self):
     return f"<Envio(rastreio='{self.rastreio}')>"

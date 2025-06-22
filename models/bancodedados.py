@@ -52,15 +52,15 @@ class DBService:
         self.session = Session()
 
     def criar_envio(self, nomedoremetente: str, cpfdoremetente: str, enderecodoremetente: str, bairrodoremetente: str,  
-                    cepdoremetente: str, rastreio: str, tipodeserviço: str, nomedodestinatario: str,
+                    cepdoremetente: str, rastreio: str, tipodeservico: str, nomedodestinatario: str,
                     cpfdodestinatario:str, enderecododestinatario: str, bairrododestinatario: str,
-                    cepdodestinatario: str, formadepagamento: str) -> Usuario:
+                    cepdodestinatario: str, formadepagamento: str, valor: str) -> Usuario:
         # Criar novo usuário
         novo_envio = Envios(nomedoremetente=nomedoremetente, cpfdoremetente = cpfdoremetente, enderecodoremetente = enderecodoremetente, 
                                bairrodoremetente = bairrodoremetente, cepdoremetente = cepdoremetente, rastreio = rastreio,
-                               tipodeserviço = tipodeserviço, nomedodestinatario = nomedodestinatario, cpfdodestinatario= cpfdodestinatario,
+                               tipodeservico = tipodeservico, nomedodestinatario = nomedodestinatario, cpfdodestinatario= cpfdodestinatario,
                                enderecododestinatario = enderecododestinatario, bairrododestinatario = bairrododestinatario, cepdodestinatario = cepdodestinatario,
-                               formadepagamento = formadepagamento )
+                               formadepagamento = formadepagamento, valor = valor)
         # Adicionar à sessão
         self.session.add(novo_envio)
         # Salvar no banco
